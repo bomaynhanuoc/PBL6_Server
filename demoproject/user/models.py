@@ -1,6 +1,11 @@
 from django.db import models
 
 # Create your models here.
-class Todo(models.Model):
-    task = models.CharField(max_length=30)
-    description = models.CharField(max_length=100)
+class Login(models.Model):
+    username = models.CharField(max_length=30)
+    password = models.CharField(max_length=30)
+
+class Register(models.Model):
+    username = models.CharField(max_length=30)
+    password = models.CharField(max_length=30)
+    role = models.CharField(max_length=30, default='member')
