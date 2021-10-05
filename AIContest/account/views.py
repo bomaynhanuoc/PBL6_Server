@@ -1,8 +1,12 @@
+import secrets
+from cryptography.fernet import  Fernet
 from django.shortcuts import render
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 from django.http.response import JsonResponse
 from AIContest.account.models import Accounts, AccountSerializer
+
+#key = Fernet.generate_key()
 
 
 def getAccounts(request):
@@ -15,6 +19,11 @@ def getAccounts(request):
 
 def createAccount(request):
     account_data = JSONParser().parse(request)
+    account_data['key'] = Fernet.generate_key().decode("utf-8")
+    fernet = Fernet(account_data['key'])
+    account_data['token'] = secrets.token_hex(16)
+    account_data['password'] = fernet.encrypt(account_data['password'].encode()).decode("utf-8")
+    print(fernet.encrypt(account_data['password'].encode()))
     account_serializer = AccountSerializer(data=account_data)
     if account_serializer.is_valid():
         account_serializer.save()
@@ -45,16 +54,24 @@ def deleteAccount(request):
         return JsonResponse("Account doesn't existed", safe=False)
 
 def loginAccount(request):
-    a = ""
+    a = []
     try:
         account_data = JSONParser().parse(request)
         username = account_data['username']
         password = account_data['password']
         accounts = list(Accounts.objects.all().values())
+
         for i, j in enumerate(accounts):
             if j['username'] == username:
-                if j['password'] == password:
-                    a = "Successfully"
+                fernet = Fernet(bytes(j['key'], "utf-8"))
+                #print(bytes(j['password'], "utf-8"))
+                #print(fernet.decrypt(bytes(j['password'], "utf-8")).decode())
+                #test = fernet.encrypt(password.encode())
+                #check = fernet.decrypt(bytes(j['password'], "utf-8")).decode()
+                #print(check)
+                #print(bytes(fernet.decrypt(j['password'])).decode())
+                if fernet.decrypt(bytes(j['password'], "utf-8")).decode() == password:
+                    a = j['token']
                     break
                 a = "Password is wrong"
                 break
