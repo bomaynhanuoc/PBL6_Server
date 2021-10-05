@@ -5,5 +5,6 @@ from AIContest.user import views
 urlpatterns = [
     url(r'getusers$', views.getUsers),
     url(r'createuser$', views.createUser),
-    url(r'updateuser$', views.updateUser)
+    url(r'updateuser$', views.updateUser),
+    url(r'deleteuser$', views.deleteUser)
 ]
