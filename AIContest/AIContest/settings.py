@@ -74,12 +74,12 @@ WSGI_APPLICATION = 'AIContest.AIContest.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-DB_NAME = 'mongodb+srv://admin:admin@btlondb.0tde8.mongodb.net/BTLon?retryWrites=true&w=majority'
+DB_NAME = 'mongodb+srv://admin:not_admin@cluster0.h0pui.mongodb.net/AIContest?retryWrites=true&w=majority'
 
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'BTLon',
+        'NAME': 'AIContest',
         'ENFORCE_SCHEMA': False,
         'CLIENT': {
             'host': DB_NAME
