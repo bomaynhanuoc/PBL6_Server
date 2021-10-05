@@ -43,3 +43,24 @@ def deleteAccount(request):
         return JsonResponse("Delete Successfully", safe=False)
     except Accounts.DoesNotExist:
         return JsonResponse("Account doesn't existed", safe=False)
+
+def loginAccount(request):
+    a = ""
+    try:
+        account_data = JSONParser().parse(request)
+        username = account_data['username']
+        password = account_data['password']
+        accounts = list(Accounts.objects.all().values())
+        for i, j in enumerate(accounts):
+            if j['username'] == username:
+                if j['password'] == password:
+                    a = "Successfully"
+                    break
+                a = "Password is wrong"
+                break
+            if accounts[i]['username'] != username:
+                a = "Account doesn't existed"
+        return JsonResponse(a, safe=False)
+    except:
+        return JsonResponse("You got error!!!", safe=False)
+
