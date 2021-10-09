@@ -61,6 +61,9 @@ def loginAccount(request):
         password = account_data['password']
         accounts = list(Accounts.objects.all().values())
 
+        account = Accounts.objects.get(username=account_data['username'])
+        account_serializer = AccountSerializer(account, data=account_data)
+
         for i, j in enumerate(accounts):
             if j['username'] == username:
                 fernet = Fernet(bytes(j['key'], "utf-8"))
@@ -84,16 +87,19 @@ def loginAccount(request):
 def logoutAccount(request):
     try:
         account_data = JSONParser().parse(request)
-        username = account_data['username']
-        accounts = list(Accounts.objects.all().values())
-        for i, j in enumerate(accounts):
-            if j['username'] == username:
-                account = j
-                account['token'] = secrets.token_hex(16)
-                account_serializer = AccountSerializer(account_data, data=account)
-                if account_serializer.is_valid():
-                    account_serializer.save()
-                    return JsonResponse("Logged out Successfully", safe=False)
+        account = Accounts.objects.get(username=account_data['username'])
+        # account_data = account
+        account_data['token'] = secrets.token_hex(16)
+        account_serializer = AccountSerializer(account, data=account_data)
+        # username = account_data['username']
+        # accounts = list(Accounts.objects.all().values())
+        # for account in accounts:
+        #     if account['username'] == username:
+        #         account['token'] = secrets.token_hex(16)
+        #         account_serializer = AccountSerializer(account_data, data=account)
+        if account_serializer.is_valid():
+            account_serializer.save()
+            return JsonResponse("Logged out Successfully", safe=False)
 
     except Accounts.DoesNotExist:
         return JsonResponse("Account doesn't existed", safe=False)
