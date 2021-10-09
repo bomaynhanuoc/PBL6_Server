@@ -81,3 +81,21 @@ def loginAccount(request):
     except:
         return JsonResponse("You got error!!!", safe=False)
 
+def logoutAccount(request):
+    try:
+        account_data = JSONParser().parse(request)
+        username = account_data['username']
+        accounts = list(Accounts.objects.all().values())
+        for i, j in enumerate(accounts):
+            if j['username'] == username:
+                account = j
+                account['token'] = secrets.token_hex(16)
+                account_serializer = AccountSerializer(account_data, data=account)
+                if account_serializer.is_valid():
+                    account_serializer.save()
+                    return JsonResponse("Logged out Successfully", safe=False)
+
+    except Accounts.DoesNotExist:
+        return JsonResponse("Account doesn't existed", safe=False)
+    return JsonResponse(account_serializer.errors, safe=False)
+

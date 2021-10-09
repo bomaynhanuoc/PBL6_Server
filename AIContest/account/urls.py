@@ -7,5 +7,6 @@ urlpatterns = [
     url(r'createaccount$', views.createAccount),
     url(r'updateaccount$', views.updateAccount),
     url(r'deleteaccount$', views.deleteAccount),
-    url(r'loginaccount$', views.loginAccount)
+    url(r'loginaccount$', views.loginAccount),
+    url(r'logoutaccount$', views.logoutAccount)
 ]
