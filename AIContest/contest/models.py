@@ -1,5 +1,4 @@
 from django.db import models
-#from djangotoolbox.fields import ListField
 from rest_framework import serializers
 from datetime import datetime
 
@@ -20,7 +19,8 @@ class Contests(models.Model):
 
 
 class ContestSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Contests
         fields = '__all__'
+
+
