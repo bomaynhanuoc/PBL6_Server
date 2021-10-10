@@ -57,33 +57,24 @@ def deleteAccount(request):
 
 
 def loginAccount(request):
+    account_data = JSONParser().parse(request)
     try:
-        account_data = JSONParser().parse(request)
-        username = account_data['username']
-        password = account_data['password']
+        account = Accounts.objects.get(username=account_data['username'])
         token = secrets.token_hex(16)
-        account_data['token'] = token
-        accounts = list(Accounts.objects.all().values())
-        res = "Account doesn't existed"
-        for account in accounts:
-            if account['username'] == username:
-                fernet = Fernet(bytes(account['key'], "utf-8"))
-                if fernet.decrypt(bytes(account['password'], "utf-8")).decode() == password:
-                    res = token
-                    account_save = Accounts.objects.get(username=account_data['username'])
-                    account_save_data = account_data
-                    account_save_data['password'] = account['password']
-                    account_save_data['token'] = token
-                    account_serializer = AccountSerializer(account_save, data=account_save_data)
-                    if account_serializer.is_valid():
-                        account_serializer.save()
-                    print(account_serializer.errors)
-                    break
-                res = "Wrong password"
-                break
-        return JsonResponse(res, safe=False)
-    except Exception as e:
-        return JsonResponse(e, safe=False)
+        fernet = Fernet(account.key)
+        # print(account.key)
+        if account_data['password'] == fernet.decrypt(bytes(account.password, "utf-8")).decode():
+            account_data['password'] = account.password
+            account_data['token'] = token
+            account_serializer = AccountSerializer(account, data=account_data)
+            if account_serializer.is_valid():
+                account_serializer.save()
+                return JsonResponse(token, safe=False)
+        else:
+            return JsonResponse("Wrong password", safe=False)
+    except Accounts.DoesNotExist:
+        return JsonResponse("Account doesn't existed", safe=False)
+    return JsonResponse(account_serializer.errors, safe=False)
 
 
 def logoutAccount(request):
