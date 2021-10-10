@@ -23,7 +23,6 @@ def createAccount(request):
     fernet = Fernet(account_data['key'])
     account_data['token'] = secrets.token_hex(16)
     account_data['password'] = fernet.encrypt(account_data['password'].encode()).decode("utf-8")
-    print(fernet.encrypt(account_data['password'].encode()))
     account_serializer = AccountSerializer(data=account_data)
     if account_serializer.is_valid():
         account_serializer.save()
@@ -35,6 +34,9 @@ def updateAccount(request):
     account_data = JSONParser().parse(request)
     try:
         account = Accounts.objects.get(username=account_data['username'])
+        fernet = Fernet(account.key)
+        account_data['password'] = fernet.encrypt(account_data['password'].encode()).decode("utf-8")
+        # print(account.key)
         account_serializer = AccountSerializer(account, data=account_data)
         if account_serializer.is_valid():
             account_serializer.save()
@@ -53,31 +55,48 @@ def deleteAccount(request):
     except Accounts.DoesNotExist:
         return JsonResponse("Account doesn't existed", safe=False)
 
+
 def loginAccount(request):
-    a = []
     try:
         account_data = JSONParser().parse(request)
         username = account_data['username']
         password = account_data['password']
+        token = secrets.token_hex(16)
+        account_data['token'] = token
         accounts = list(Accounts.objects.all().values())
-
-        for i, j in enumerate(accounts):
-            if j['username'] == username:
-                fernet = Fernet(bytes(j['key'], "utf-8"))
-                #print(bytes(j['password'], "utf-8"))
-                #print(fernet.decrypt(bytes(j['password'], "utf-8")).decode())
-                #test = fernet.encrypt(password.encode())
-                #check = fernet.decrypt(bytes(j['password'], "utf-8")).decode()
-                #print(check)
-                #print(bytes(fernet.decrypt(j['password'])).decode())
-                if fernet.decrypt(bytes(j['password'], "utf-8")).decode() == password:
-                    a = j['token']
+        res = "Account doesn't existed"
+        for account in accounts:
+            if account['username'] == username:
+                fernet = Fernet(bytes(account['key'], "utf-8"))
+                if fernet.decrypt(bytes(account['password'], "utf-8")).decode() == password:
+                    res = token
+                    account_save = Accounts.objects.get(username=account_data['username'])
+                    account_save_data = account_data
+                    account_save_data['password'] = account['password']
+                    account_save_data['token'] = token
+                    account_serializer = AccountSerializer(account_save, data=account_save_data)
+                    if account_serializer.is_valid():
+                        account_serializer.save()
+                    print(account_serializer.errors)
                     break
-                a = "Password is wrong"
+                res = "Wrong password"
                 break
-            if accounts[i]['username'] != username:
-                a = "Account doesn't existed"
-        return JsonResponse(a, safe=False)
-    except:
-        return JsonResponse("You got error!!!", safe=False)
+        return JsonResponse(res, safe=False)
+    except Exception as e:
+        return JsonResponse(e, safe=False)
+
+
+def logoutAccount(request):
+    try:
+        account_data = JSONParser().parse(request)
+        account = Accounts.objects.get(username=account_data['username'])
+        account_data['token'] = ""
+        account_serializer = AccountSerializer(account, data=account_data)
+        if account_serializer.is_valid():
+            account_serializer.save()
+            return JsonResponse("Logged out Successfully", safe=False)
+
+    except Accounts.DoesNotExist:
+        return JsonResponse("Account doesn't existed", safe=False)
+    return JsonResponse(account_serializer.errors, safe=False)
 
