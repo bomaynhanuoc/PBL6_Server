@@ -1,5 +1,5 @@
 import secrets
-from cryptography.fernet import  Fernet
+from cryptography.fernet import Fernet
 from django.shortcuts import render
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
@@ -36,7 +36,6 @@ def updateAccount(request):
         account = Accounts.objects.get(username=account_data['username'])
         fernet = Fernet(account.key)
         account_data['password'] = fernet.encrypt(account_data['password'].encode()).decode("utf-8")
-        # print(account.key)
         account_serializer = AccountSerializer(account, data=account_data)
         if account_serializer.is_valid():
             account_serializer.save()
@@ -52,7 +51,7 @@ def deleteAccount(request):
         account = Accounts.objects.get(username=account_data['username'])
         account.delete()
         return JsonResponse("Delete Successfully", safe=False)
-    except Accounts.DoesNotExist:
+    except Accounts.DoesNotExaist:
         return JsonResponse("Account doesn't existed", safe=False)
 
 
@@ -62,7 +61,6 @@ def loginAccount(request):
         account = Accounts.objects.get(username=account_data['username'])
         token = secrets.token_hex(16)
         fernet = Fernet(account.key)
-        # print(account.key)
         if account_data['password'] == fernet.decrypt(bytes(account.password, "utf-8")).decode():
             account_data['password'] = account.password
             account_data['token'] = token
