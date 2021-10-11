@@ -5,7 +5,7 @@ from datetime import datetime
 
 class Contests(models.Model):
     creator = models.CharField(max_length=30, default='')
-    partilist = models.TextField(default='[]', blank=True)
+    participants = models.TextField(default='{}', blank=True)
     title = models.TextField(default='', blank=True)
     description = models.TextField(default='', blank=True)
     linkcontest = models.CharField(max_length=100, default='', blank=True)
