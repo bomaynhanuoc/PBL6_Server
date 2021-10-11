@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'AIContest.AIContest.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-DB_NAME = 'mongodb+srv://admin:not_admin@cluster0.h0pui.mongodb.net/AIContest?retryWrites=true&w=majority'
+DB_NAME = 'mongodb+srv://admin:not_admin@cluster0.h0pui.mongodb.net/AIContest?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE'
 
 DATABASES = {
     'default': {
