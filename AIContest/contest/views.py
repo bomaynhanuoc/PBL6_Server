@@ -16,7 +16,7 @@ def getContest(request):
         list_participants = json.loads(contest.participants)
         list_participants = dict(sorted(list_participants.items(), key=lambda item: item[1], reverse=True))
         list_language = jsondec.decode(contest.language)
-        jsonRes = {
+        jsonres = {
             "id": contest.id,
             "creator": contest.creator,
             "participants": list_participants,
@@ -32,7 +32,7 @@ def getContest(request):
             "language": list_language,
 
         }
-        return JsonResponse(jsonRes, safe=False)
+        return JsonResponse(jsonres, safe=False)
     except Contests.DoesNotExist:
         return JsonResponse("Contest does not exist", safe=False)
     # except Exception as e:
@@ -69,6 +69,7 @@ def createContest(request):
     except Exception as e:
         return JsonResponse(e, safe=False)
 
+
 def addParticipant(request):
     request_data = JSONParser().parse(request)
     try:
@@ -85,8 +86,6 @@ def addParticipant(request):
         return JsonResponse(contest_serializer.errors, safe=False)
     except Exception as e:
         return JsonResponse(e, safe=False)
-
-
 
 
 def updateContest(request):
@@ -112,6 +111,6 @@ def deleteContest(request):
     #     contest = Contests.objects.get(username=contest_data['username'])
     #     contest.delete()
     #     return JsonResponse("Delete Successfully", safe=False)
-    # except Contests.DoesNotExaist:
+    # except Contests.DoesNotExist:
     #     return JsonResponse("Contest doesn't existed", safe=False)
     return JsonResponse("update", safe=False)

@@ -8,5 +8,6 @@ urlpatterns = [
     url(r'updateaccount$', views.updateAccount),
     url(r'deleteaccount$', views.deleteAccount),
     url(r'loginaccount$', views.loginAccount),
-    url(r'logoutaccount$', views.logoutAccount)
+    url(r'logoutaccount$', views.logoutAccount),
+    url(r'checktoken$', views.checkToken)
 ]

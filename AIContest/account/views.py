@@ -6,9 +6,8 @@ from rest_framework.decorators import api_view
 from django.http.response import JsonResponse
 from AIContest.account.models import Accounts, AccountSerializer
 
-#key = Fernet.generate_key()
 
-
+@api_view(['GET'])
 def getAccounts(request):
     accounts = list(Accounts.objects.all().values())
     account_serializer = AccountSerializer(data=accounts, many=True)
@@ -17,6 +16,7 @@ def getAccounts(request):
     return JsonResponse(account_serializer.errors, safe=False)
 
 
+@api_view(['POST'])
 def createAccount(request):
     account_data = JSONParser().parse(request)
     account_data['key'] = Fernet.generate_key().decode("utf-8")
@@ -30,6 +30,7 @@ def createAccount(request):
     return JsonResponse(account_serializer.errors, safe=False)
 
 
+@api_view(['PATCH'])
 def updateAccount(request):
     account_data = JSONParser().parse(request)
     try:
@@ -45,6 +46,7 @@ def updateAccount(request):
     return JsonResponse(account_serializer.errors, safe=False)
 
 
+@api_view(['DELETE'])
 def deleteAccount(request):
     account_data = JSONParser().parse(request)
     try:
@@ -55,6 +57,7 @@ def deleteAccount(request):
         return JsonResponse("Account doesn't existed", safe=False)
 
 
+@api_view(['POST'])
 def loginAccount(request):
     account_data = JSONParser().parse(request)
     try:
@@ -75,6 +78,7 @@ def loginAccount(request):
     return JsonResponse(account_serializer.errors, safe=False)
 
 
+@api_view(['POST'])
 def logoutAccount(request):
     try:
         account_data = JSONParser().parse(request)
@@ -89,3 +93,14 @@ def logoutAccount(request):
         return JsonResponse("Account doesn't existed", safe=False)
     return JsonResponse(account_serializer.errors, safe=False)
 
+
+@api_view(['GET'])
+def checkToken(request):
+    try:
+        data = JSONParser().parse(request)
+        account = Accounts.objects.get(token=data['token'])
+        return JsonResponse({"username": account.username}, safe=False)
+    except Accounts.DoesNotExist:
+        return JsonResponse({"error": "Invalid token"}, safe=False)
+    except Exception as e:
+        return JsonResponse({"error": e}, safe=False)
