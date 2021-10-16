@@ -3,11 +3,11 @@ from AIContest.account import views
 
 
 urlpatterns = [
-    url(r'getaccounts$', views.getAccounts),
-    url(r'createaccount$', views.createAccount),
-    url(r'updateaccount$', views.updateAccount),
-    url(r'deleteaccount$', views.deleteAccount),
-    url(r'loginaccount$', views.loginAccount),
-    url(r'logoutaccount$', views.logoutAccount),
-    url(r'checktoken$', views.checkToken)
+    url(r'get-accounts$', views.getAccounts),
+    url(r'create-account$', views.createAccount),
+    url(r'update-account$', views.updateAccount),
+    url(r'delete-account$', views.deleteAccount),
+    url(r'login-account$', views.loginAccount),
+    url(r'logout-account$', views.logoutAccount),
+    url(r'check-token$', views.checkToken)
 ]

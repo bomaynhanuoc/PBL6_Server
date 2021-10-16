@@ -3,10 +3,10 @@ from AIContest.contest import views
 
 
 urlpatterns = [
-    url(r'getcontest$', views.getContest),
-    url(r'getcontests$', views.getContests),
-    url(r'createcontest$', views.createContest),
-    url(r'addpariticpant', views.addParticipant),
-    url(r'updatecontest$', views.updateContest),
-    url(r'deletecontest$', views.deleteContest)
+    url(r'get-contest$', views.getContest),
+    url(r'get-contests$', views.getContests),
+    url(r'create-contest$', views.createContest),
+    url(r'add-participant', views.addParticipant),
+    url(r'update-contest$', views.updateContest),
+    url(r'delete-contest$', views.deleteContest)
 ]
