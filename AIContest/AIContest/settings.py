@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'AIContest.account',
-    'AIContest.contest'
+    'AIContest.contest',
+    'AIContest.submit'
 ]
 
 MIDDLEWARE = [
