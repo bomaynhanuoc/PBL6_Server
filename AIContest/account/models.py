@@ -9,6 +9,7 @@ class Accounts(models.Model):
     token = models.CharField(max_length=100, default='', blank=True)
     key = models.CharField(max_length=100, default='')
 
+
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Accounts
