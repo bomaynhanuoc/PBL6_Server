@@ -39,11 +39,11 @@ def getContest(request):
 
 
 def getContests(request):
-    contests = list(Contests.objects.all().values())
-    contest_serializer = ContestSerializer(data=contests, many=True)
-    if contest_serializer.is_valid():
-        return JsonResponse(contest_serializer.data, safe=False)
-    return JsonResponse(contest_serializer.errors, safe=False)
+    contests = list(Contests.objects.all().values('id', 'title', 'timeregist', 'timestart', 'timeend'))
+    # contest_serializer = ContestSerializer(data=contests, many=True)
+    if len(contests) != 0:
+        return JsonResponse(contests, safe=False)
+    return JsonResponse("no contest", safe=False)
 
 
 def createContest(request):
@@ -60,6 +60,7 @@ def createContest(request):
             language_str = "[]"
         contest_data['participants'] = participants_str
         contest_data['language'] = language_str
+        print(contest_data['timeregist'])
         contest_serializer = ContestSerializer(data=contest_data)
         if contest_serializer.is_valid():
             contest_serializer.save()
@@ -74,11 +75,14 @@ def addParticipant(request):
     request_data = JSONParser().parse(request)
     try:
         contest = Contests.objects.get(id=request_data['id'])
+        participant = json.loads(contest.participants)
+        if request_data['username'] in participant:
+            return JsonResponse("User name had been added in Contest", safe=False)
+        participant[request_data['username']] = 0
         contest_data = {
             "id": contest.id,
-            "participants": contest.participants[:-1] + ', "' + request_data['username'] + '"]'
+            "participants": json.dumps(participant)
         }
-
         contest_serializer = ContestSerializer(contest, data=contest_data)
         if contest_serializer.is_valid():
             contest_serializer.save()
@@ -89,20 +93,19 @@ def addParticipant(request):
 
 
 def updateContest(request):
-    # contest_data = JSONParser().parse(request)
-    # try:
-    #     contest = Contests.objects.get(username=contest_data['username'])
-    #     fernet = Fernet(contest.key)
-    #     contest_data['password'] = fernet.encrypt(contest_data['password'].encode()).decode("utf-8")
-    #     # print(contest.key)
-    #     contest_serializer = ContestSerializer(contest, data=contest_data)
-    #     if contest_serializer.is_valid():
-    #         contest_serializer.save()
-    #         return JsonResponse("Updated Successfully", safe=False)
-    # except Contests.DoesNotExist:
-    #     return JsonResponse("Contest doesn't existed", safe=False)
-    # return JsonResponse(contest_serializer.errors, safe=False)
-    return JsonResponse("update", safe=False)
+    request_data = JSONParser().parse(request)
+    try:
+        contest = Contests.objects.get(id=request_data['id'])
+        updateRanking(request_data['id'], "Long", 10)
+        contest_serializer = ContestSerializer(contest, data=request_data)
+        # participant = json.loads(contest.participants)
+        if contest_serializer.is_valid():
+            # contest_serializer.save()
+            return JsonResponse("Updated Successfully", safe=False)
+    except Contests.DoesNotExist:
+        return JsonResponse("Contest doesn't existed", safe=False)
+    return JsonResponse(contest_serializer.errors, safe=False)
+    # return JsonResponse("update", safe=False)
 
 
 def deleteContest(request):
@@ -114,3 +117,19 @@ def deleteContest(request):
     # except Contests.DoesNotExist:
     #     return JsonResponse("Contest doesn't existed", safe=False)
     return JsonResponse("update", safe=False)
+
+def updateRanking(id , username, point):
+
+    contest_data = Contests.objects.get(id=id)
+    participants = json.loads(contest_data.participants)
+    print(participants)
+    if participants[username] < point:
+        participants[username] = point
+    print(participants)
+    contest_update = {
+        "id": id,
+        "participants": json.dumps(participants)
+    }
+    contest_serializer = ContestSerializer(contest_data, data=contest_update)
+    if contest_serializer.is_valid():
+        contest_serializer.save()

@@ -1,6 +1,7 @@
 from django.db import models
 from rest_framework import serializers
 from datetime import datetime
+from AIContest.AIContest import settings
 
 
 class Contests(models.Model):
@@ -12,7 +13,7 @@ class Contests(models.Model):
     linkdatatrain = models.CharField(max_length=100, default='', blank=True)
     linkdatatest = models.CharField(max_length=100, default='', blank=True)
     linktester = models.CharField(max_length=100, default='', blank=True)
-    timeregist = models.DateTimeField(default=datetime.now, blank=True)
+    timeregist = models.DateTimeField(default=datetime.now, blank=True, null=True)
     timestart = models.DateTimeField(default=datetime.now, blank=True)
     timeend = models.DateTimeField(default=datetime.now, blank=True)
     language = models.TextField(default='[]', blank=True)
