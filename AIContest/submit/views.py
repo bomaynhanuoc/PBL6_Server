@@ -47,7 +47,7 @@ def viewSubmit(request):
         if 'id' in data:
             submit = Submits.objects.get(id=data['id'])
             print(data['id'])
-            file = open(SUBMIT_DIR / submit.link_submit, 'r')
+            file = open(SUBMIT_DIR / submit.link_submit.split(".")[0] / submit.link_submit, 'r')
             data = file.read()
             return HttpResponse(data)
         else:
@@ -102,7 +102,7 @@ def createSubmit(request):
             if submit_serializer.is_valid():
                 submit_serializer.save()
                 try:
-                    t1 = threading.Thread(target=checkSubmit, args=(name, save_path, '/home/admin/input.txt', submit_data['language'], 3,))
+                    t1 = threading.Thread(target=checkSubmit, args=(name, save_path, '/home/admin/input.txt', submit_data['language'], 3, BASE_DIR / "contest" / "file" / "abc",))
                     t1.start()
                 except:
                     return Response("Error when check submit")
@@ -126,7 +126,7 @@ def checkType(language, type):
     return False
 
 
-def checkSubmit(name, path, input_path, language, time_out):
+def checkSubmit(name, path, input_path, language, time_out, file_path):
     if language == "C" or language == "C++":
         status = c_run(name, path, input_path, time_out)
     elif language == "Python":
@@ -139,12 +139,17 @@ def checkSubmit(name, path, input_path, language, time_out):
         return
     with open(path / "output.txt", 'w') as f:
         f.write(status)
-
-    # try:
-    #     tmp = subprocess.run(["python", tester], stdout=PIPE, stderr=PIPE, encoding="utf-8")
-    #     status = tmp.stdout
-    # except:
-    #     return
+    subprocess.call(["cp", file_path / "tester.py", path / "tester.py"])
+    subprocess.call(["cp", file_path / "data_train.txt", path / "data_train.txt"])
+    subprocess.call(["cp", file_path / "data_test.txt", path / "data_test.txt"])
+    try:
+        tmp = subprocess.run(["python", path / "tester.py"], stdout=PIPE, stderr=PIPE, encoding="utf-8")
+        status = tmp.stdout
+    except:
+        return
+    os.remove(path / "tester.py")
+    os.remove(path / "data_train.txt")
+    os.remove(path / "data_test.txt")
     saveStatus(submit_id, status)
 
 
@@ -165,7 +170,6 @@ def findSubmit(name):
 
 
 def c_run(name, path, input_path, time_out):
-    print("C/C++")
     try:
         build_path = path / name.split(".")[0]
         subprocess.run(["g++", path / name, "-o", build_path], check=True)
