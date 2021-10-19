@@ -19,6 +19,7 @@ class Contests(models.Model):
     language = models.TextField(default='[]', blank=True)
     time_out = models.FloatField(max_length=100, blank=True)
 
+
 class ContestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contests
