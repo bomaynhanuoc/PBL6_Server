@@ -10,7 +10,6 @@ class Submits(models.Model):
     status = models.CharField(max_length=30, default='Pending')
     time_submit = models.DateTimeField(default=datetime.now, blank=True)
     link_submit = models.CharField(max_length=100, default='')
-    time_execute = models.FloatField(default=0, blank=True)
 
 
 class SubmitSerializer(serializers.ModelSerializer):
