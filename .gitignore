@@ -103,3 +103,7 @@ GitHub.sublime-settings
 !.vscode/launch.json
 !.vscode/extensions.json
 .history
+
+# Empty file
+AIContest/submit/file
+AIContest/contest/file
