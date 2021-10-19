@@ -9,15 +9,15 @@ class Contests(models.Model):
     participants = models.TextField(default='{}', blank=True)
     title = models.TextField(default='', blank=True)
     description = models.TextField(default='', blank=True)
-    linkcontest = models.CharField(max_length=100, default='', blank=True)
-    linkdatatrain = models.CharField(max_length=100, default='', blank=True)
-    linkdatatest = models.CharField(max_length=100, default='', blank=True)
-    linktester = models.CharField(max_length=100, default='', blank=True)
-    timeregist = models.DateTimeField(default=datetime.now, blank=True, null=True)
-    timestart = models.DateTimeField(default=datetime.now, blank=True)
-    timeend = models.DateTimeField(default=datetime.now, blank=True)
+    link_contest = models.CharField(max_length=100, default='', blank=True)
+    link_datatrain = models.CharField(max_length=100, default='', blank=True)
+    link_datatest = models.CharField(max_length=100, default='', blank=True)
+    link_tester = models.CharField(max_length=100, default='', blank=True)
+    time_regist = models.DateTimeField(default=datetime.now, blank=True, null=True)
+    time_start = models.DateTimeField(default=datetime.now, blank=True)
+    time_end = models.DateTimeField(default=datetime.now, blank=True)
     language = models.TextField(default='[]', blank=True)
-
+    time_out = models.FloatField(max_length=100, blank=True)
 
 class ContestSerializer(serializers.ModelSerializer):
     class Meta:
