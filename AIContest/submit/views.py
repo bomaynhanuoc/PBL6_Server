@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from django.http import HttpResponse
 from django.core.files.storage import FileSystemStorage
 from AIContest.submit.models import Submits, SubmitSerializer
+from AIContest.contest.models import Contests
+from AIContest.contest.views import findContest, updateRanking
 import secrets
 import json
 from pathlib import Path
@@ -16,6 +18,7 @@ import subprocess
 from subprocess import PIPE, STDOUT
 BASE_DIR = Path(__file__).resolve().parent.parent
 SUBMIT_DIR = BASE_DIR / "submit" / "file"
+CONTEST_DIR = BASE_DIR / "contest" / "file"
 
 
 @api_view(['GET'])
@@ -46,7 +49,6 @@ def viewSubmit(request):
         data = JSONParser().parse(request)
         if 'id' in data:
             submit = Submits.objects.get(id=data['id'])
-            print(data['id'])
             file = open(SUBMIT_DIR / submit.link_submit.split(".")[0] / submit.link_submit, 'r')
             data = file.read()
             return HttpResponse(data)
@@ -88,6 +90,11 @@ def createSubmit(request):
             "username": request.data['username'],
             "language": request.data['language']
         }
+        contest = findContest(submit_data["id_contest"])
+        jsondec = json.decoder.JSONDecoder()
+        languages = jsondec.decode(contest.language)
+        if submit_data["language"] not in languages:
+            return Response("Invalid language for this contest")
         code = request.data['code']
         type = code.name.split('.')[1]
         if checkType(submit_data["language"], type):
@@ -102,7 +109,9 @@ def createSubmit(request):
             if submit_serializer.is_valid():
                 submit_serializer.save()
                 try:
-                    t1 = threading.Thread(target=checkSubmit, args=(name, save_path, '/home/admin/input.txt', submit_data['language'], 3, BASE_DIR / "contest" / "file" / "abc",))
+                    t1 = threading.Thread(target=checkSubmit, args=(name, save_path, CONTEST_DIR / contest.link_contest / 'input.txt',
+                                                                    submit_data['language'], contest.time_out, CONTEST_DIR / contest.link_contest,
+                                                                    submit_data["id_contest"], submit_data["username"],))
                     t1.start()
                 except:
                     return Response("Error when check submit")
@@ -126,7 +135,7 @@ def checkType(language, type):
     return False
 
 
-def checkSubmit(name, path, input_path, language, time_out, file_path):
+def checkSubmit(name, path, input_path, language, time_out, file_path, id_contest, username):
     if language == "C" or language == "C++":
         status = c_run(name, path, input_path, time_out)
     elif language == "Python":
@@ -151,6 +160,7 @@ def checkSubmit(name, path, input_path, language, time_out, file_path):
     os.remove(path / "data_train.txt")
     os.remove(path / "data_test.txt")
     saveStatus(submit_id, status)
+    updateRanking(id_contest, username, float(status))
 
 
 def saveStatus(id, status):

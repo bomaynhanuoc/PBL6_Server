@@ -3,10 +3,18 @@ from cryptography.fernet import Fernet
 from django.shortcuts import render
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from django.http.response import JsonResponse
+from django.http import HttpResponse
+from django.core.files.storage import FileSystemStorage
 from AIContest.contest.models import Contests, ContestSerializer
 from datetime import datetime
 import json
+import os
+import os.path
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent
+CONTEST_DIR = BASE_DIR / "contest" / "file"
 
 
 def getContest(request):
@@ -17,7 +25,6 @@ def getContest(request):
         list_participants = json.loads(contest.participants)
         list_participants = dict(sorted(list_participants.items(), key=lambda item: item[1], reverse=True))
         list_language = jsondec.decode(contest.language)
-
         jsonres = {
             "id": contest.id,
             "creator": contest.creator,
@@ -34,9 +41,9 @@ def getContest(request):
             "language": list_language,
             "time_out": contest.time_out
         }
-        return JsonResponse(jsonres, safe=False)
+        return Response(jsonres)
     except Contests.DoesNotExist:
-        return JsonResponse("Contest does not exist", safe=False)
+        return Response("Contest does not exist")
     # except Exception as e:
 
 
@@ -52,23 +59,42 @@ def getContests(request):
     return JsonResponse("no contest", safe=False)
 
 
+@api_view(['POST'])
 def createContest(request):
-    contest_data = JSONParser().parse(request)
     try:
-        # contest_data['participants']
-        if 'participants' in contest_data:
-            participants_str = json.dumps(contest_data['participants'])
-        else:
-            participants_str = "{}"
-        if 'language' in contest_data:
-            language_str = '["' + '", "'.join(contest_data['language']) + '"]'
-        else:
-            language_str = "[]"
-        contest_data['participants'] = participants_str
-        contest_data['language'] = language_str
-        contest_data['time_regist'] = convertStringtoDateTime(contest_data['time_regist'])
-        contest_data['time_start'] = convertStringtoDateTime(contest_data['time_start'])
-        contest_data['time_end'] = convertStringtoDateTime(contest_data['time_end'])
+        contest_detail = request.data['contest']
+        data_train = request.data['data_train']
+        data_test = request.data['data_test']
+        tester = request.data['tester']
+        name = secrets.token_hex(16)
+        save_path = CONTEST_DIR / name
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+        fs = FileSystemStorage(location=save_path)
+        fs.save("contest.pdf", contest_detail)
+        fs.save("data_train.txt", data_train)
+        fs.save("data_test.txt", data_test)
+        fs.save("tester.py", tester)
+        filenames = ['data_train.txt', 'data_test.txt']
+        with open(CONTEST_DIR / name / 'input.txt', 'w') as outfile:
+            for f in filenames:
+                with open(CONTEST_DIR / name / f) as infile:
+                    for line in infile:
+                        outfile.write(line)
+        contest_data = {"creator": request.data['creator'],
+                        "participants": "{}",
+                        "title": request.data['title'],
+                        "description": request.data['description'],
+                        "link_contest": name,
+                        "link_datatrain": name + "/data_train.txt",
+                        "link_datatest": name + "/data_test.txt",
+                        "link_tester": name + "/tester.py",
+                        "time_regist": convertStringtoDateTime(request.data['time_regist']),
+                        "time_start": convertStringtoDateTime(request.data['time_start']),
+                        "time_end": convertStringtoDateTime(request.data['time_end']),
+                        "language": request.data['language'],
+                        "time_out": request.data['time_out']
+                        }
         contest_serializer = ContestSerializer(data=contest_data)
         if contest_serializer.is_valid():
             contest_serializer.save()
@@ -119,21 +145,20 @@ def updateContest(request):
 def deleteContest(request):
     # contest_data = JSONParser().parse(request)
     # try:
-    #     contest = Contests.objects.get(username=contest_data['username'])
+    #     contest = Contests.objects.get(id=contest_data['id'])
     #     contest.delete()
     #     return JsonResponse("Delete Successfully", safe=False)
     # except Contests.DoesNotExist:
     #     return JsonResponse("Contest doesn't existed", safe=False)
     return JsonResponse("update", safe=False)
 
-def updateRanking(id , username, point):
 
+def updateRanking(id, username, point):
     contest_data = Contests.objects.get(id=id)
     participants = json.loads(contest_data.participants)
-    print(participants)
     if participants[username] < point:
         participants[username] = point
-    print(participants)
+    participants = dict(sorted(participants.items(), key=lambda x: x[1], reverse=True))
     contest_update = {
         "id": id,
         "participants": json.dumps(participants)
@@ -142,10 +167,17 @@ def updateRanking(id , username, point):
     if contest_serializer.is_valid():
         contest_serializer.save()
 
+
 def convertDateTimetoString(time):
     time_parse = time.strftime('%d-%m-%Y %H:%M:%S')
     return time_parse
 
+
 def convertStringtoDateTime(time):
     time_parse = time.replace(" ", "T")
     return time_parse
+
+
+def findContest(id):
+    contest = Contests.objects.get(id=id)
+    return contest
