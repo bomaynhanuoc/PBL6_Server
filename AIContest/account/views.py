@@ -162,3 +162,15 @@ def checkUsername(name):
     except Accounts.DoesNotExist:
         return True
     return False
+
+
+def getTokenRole(token):
+    try:
+        account = Accounts.objects.get(token=token)
+        res = {
+                "username": account.username,
+                "role": account.role
+        }
+        return res
+    except Accounts.DoesNotExist:
+        return "Invalid token"

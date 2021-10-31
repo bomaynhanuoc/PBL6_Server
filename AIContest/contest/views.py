@@ -8,8 +8,11 @@ from django.http.response import JsonResponse
 from django.http import HttpResponse
 from django.core.files.storage import FileSystemStorage
 from AIContest.contest.models import Contests, ContestSerializer
+from AIContest.account.models import Accounts
+from AIContest.account.views import getTokenRole
 from datetime import datetime
 import json
+import base64
 import os
 import os.path
 from pathlib import Path
@@ -19,10 +22,10 @@ CONTEST_DIR = BASE_DIR / "contest" / "file"
 
 @api_view(['POST'])
 def getContest(request):
-    contest_data = JSONParser().parse(request)
+    data = JSONParser().parse(request)
     try:
         jsondec = json.decoder.JSONDecoder()
-        contest = Contests.objects.get(id=contest_data['id'])
+        contest = Contests.objects.get(id=data['id'])
         list_participants = json.loads(contest.participants)
         list_language = jsondec.decode(contest.language)
         jsonres = {
@@ -31,16 +34,24 @@ def getContest(request):
             "participants": list_participants,
             "title": contest.title,
             "description": contest.description,
-            "link_contest": contest.link_contest,
-            "link_datatrain": contest.link_datatrain,
-            "link_datatest": contest.link_datatest,
-            "link_tester": contest.link_tester,
             "time_regist": convertDateTimetoString(contest.time_regist),
             "time_start": convertDateTimetoString(contest.time_start),
             "time_end": convertDateTimetoString(contest.time_end),
             "language": list_language,
             "time_out": contest.time_out
         }
+        account = getTokenRole(data['token'])
+        if account.__class__ is str:
+            return Response("FORBIDDEN")
+        else:
+            if account['username'] == contest.creator:
+                jsonres['link_contest'] = base64.b64encode(open(CONTEST_DIR / contest.link_contest / "contest.pdf", 'rb').read()).decode('utf-8')
+                jsonres['link_datatrain'] = open(CONTEST_DIR / contest.link_datatrain, 'r').read()
+                jsonres['link_datatest'] = open(CONTEST_DIR / contest.link_datatest, 'r').read()
+                jsonres['link_tester'] = open(CONTEST_DIR / contest.link_tester, 'r').read()
+            elif account['username'] in list_participants:
+                jsonres['link_contest'] = base64.b64encode(open(CONTEST_DIR / contest.link_contest / "contest.pdf", 'rb').read()).decode('utf-8')
+                jsonres['link_datatrain'] = open(CONTEST_DIR / contest.link_datatrain, 'r').read()
         return Response(jsonres)
     except Contests.DoesNotExist:
         return Response("Contest does not exist")
