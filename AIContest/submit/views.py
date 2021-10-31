@@ -95,6 +95,9 @@ def createSubmit(request):
         languages = jsondec.decode(contest.language)
         if submit_data["language"] not in languages:
             return Response("Invalid language for this contest")
+        list_participants = json.loads(contest.participants)
+        if submit_data["username"] not in list_participants:
+            return Response("You can not submit to this contest")
         code = request.data['code']
         type = code.name.split('.')[1]
         if checkType(submit_data["language"], type):

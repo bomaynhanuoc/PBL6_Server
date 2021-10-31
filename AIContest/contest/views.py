@@ -17,13 +17,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 CONTEST_DIR = BASE_DIR / "contest" / "file"
 
 
+@api_view(['POST'])
 def getContest(request):
     contest_data = JSONParser().parse(request)
     try:
         jsondec = json.decoder.JSONDecoder()
         contest = Contests.objects.get(id=contest_data['id'])
         list_participants = json.loads(contest.participants)
-        list_participants = dict(sorted(list_participants.items(), key=lambda item: item[1], reverse=True))
         list_language = jsondec.decode(contest.language)
         jsonres = {
             "id": contest.id,
@@ -44,9 +44,11 @@ def getContest(request):
         return Response(jsonres)
     except Contests.DoesNotExist:
         return Response("Contest does not exist")
-    # except Exception as e:
+    except Exception as e:
+        return Response(e)
 
 
+@api_view(['GET'])
 def getContests(request):
     contests = list(Contests.objects.all().values('id', 'title', 'time_regist', 'time_start', 'time_end'))
     for i in contests:
@@ -105,13 +107,14 @@ def createContest(request):
         return JsonResponse(e, safe=False)
 
 
+@api_view(['POST'])
 def addParticipant(request):
     request_data = JSONParser().parse(request)
     try:
         contest = Contests.objects.get(id=request_data['id'])
         participant = json.loads(contest.participants)
         if request_data['username'] in participant:
-            return JsonResponse("User name had been added in Contest", safe=False)
+            return JsonResponse("Username had been added in Contest", safe=False)
         participant[request_data['username']] = 0
         contest_data = {
             "id": contest.id,
@@ -126,13 +129,12 @@ def addParticipant(request):
         return JsonResponse(e, safe=False)
 
 
+@api_view(['PATCH'])
 def updateContest(request):
     request_data = JSONParser().parse(request)
     try:
         contest = Contests.objects.get(id=request_data['id'])
-        updateRanking(request_data['id'], "Long", 10)
         contest_serializer = ContestSerializer(contest, data=request_data)
-        # participant = json.loads(contest.participants)
         if contest_serializer.is_valid():
             contest_serializer.save()
             return JsonResponse("Updated Successfully", safe=False)
@@ -142,6 +144,7 @@ def updateContest(request):
     # return JsonResponse("update", safe=False)
 
 
+@api_view(['DELETE'])
 def deleteContest(request):
     # contest_data = JSONParser().parse(request)
     # try:
@@ -150,7 +153,7 @@ def deleteContest(request):
     #     return JsonResponse("Delete Successfully", safe=False)
     # except Contests.DoesNotExist:
     #     return JsonResponse("Contest doesn't existed", safe=False)
-    return JsonResponse("update", safe=False)
+    return JsonResponse("delete", safe=False)
 
 
 def updateRanking(id, username, point):
