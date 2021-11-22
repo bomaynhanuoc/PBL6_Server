@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^', include('AIContest.account.urls')),
     url(r'^', include('AIContest.contest.urls')),
-    url(r'^', include('AIContest.submit.urls'))
+    url(r'^', include('AIContest.submit.urls')),
+    url(r'^', include('AIContest.language.urls'))
 ]

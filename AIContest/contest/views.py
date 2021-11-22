@@ -60,7 +60,7 @@ def getContest(request):
         return Response(e)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def getContests(request):
     contests = list(Contests.objects.all().values('id', 'title', 'time_regist', 'time_start', 'time_end'))
     for i in contests:
@@ -142,9 +142,9 @@ def addParticipant(request):
 def updateContest(request):
     try:
         request_data = {}
-        for key in request:
-            print(key)
-        request_data = JSONParser().parse(request)
+        for key in request.data:
+            request_data[key] = request.data[key]
+        request_data['id'] = int(request_data['id'])
         contest = Contests.objects.get(id=request_data['id'])
         check = False
         if 'token' in request_data:

@@ -9,7 +9,7 @@ from AIContest.account.models import Accounts, AccountSerializer
 import json
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def getAccounts(request):
     try:
         data = JSONParser().parse(request)
@@ -87,7 +87,7 @@ def deleteAccount(request):
             return JsonResponse("Delete Successfully", safe=False)
         else:
             return JsonResponse("Need username to proceed", safe=False)
-    except Accounts.DoesNotExaist:
+    except Accounts.DoesNotExist:
         return JsonResponse("Account doesn't existed", safe=False)
     except exceptions.ParseError:
         return JsonResponse("Invalid request data", safe=False)
@@ -139,7 +139,7 @@ def logoutAccount(request):
     return JsonResponse(account_serializer.errors, safe=False)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def checkToken(request):
     try:
         data = JSONParser().parse(request)

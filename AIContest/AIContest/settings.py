@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'AIContest.account',
     'AIContest.contest',
-    'AIContest.submit'
+    'AIContest.submit',
+    'AIContest.language'
 ]
 
 MIDDLEWARE = [
