@@ -21,7 +21,7 @@ SUBMIT_DIR = BASE_DIR / "submit" / "file"
 CONTEST_DIR = BASE_DIR / "contest" / "file"
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def getSubmit(request):
     try:
         data = JSONParser().parse(request)
@@ -43,7 +43,7 @@ def getSubmit(request):
         return Response(e)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def viewSubmit(request):
     try:
         data = JSONParser().parse(request)
@@ -62,7 +62,7 @@ def viewSubmit(request):
         return Response(e)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def getSubmits(request):
     try:
         data = JSONParser().parse(request)

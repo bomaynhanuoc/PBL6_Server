@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-e96v@esk-mghv5a^93u-vd)=&a9_vcb+0%12!f5@4e@&akrtol
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'be-bmnn.pagekite.me', 'bmnn.pagekite.me']
 
 
 # Application definition
@@ -78,18 +78,25 @@ WSGI_APPLICATION = 'AIContest.AIContest.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-DB_NAME = 'mongodb+srv://admin:admin@btlondb.0tde8.mongodb.net/AIContest?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE'
+# DB_NAME = 'mongodb+srv://admin:admin@btlondb.0tde8.mongodb.net/AIContest?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE'
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'djongo',
+#         'NAME': 'AIContest',
+#         'ENFORCE_SCHEMA': False,
+#         'CLIENT': {
+#             'host': DB_NAME
+#         }
+#     }
+# }
+DB_NAME = 'mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb'
+
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'AIContest',
-        'ENFORCE_SCHEMA': False,
-        'CLIENT': {
-            'host': DB_NAME
-        }
+        'NAME': 'aicontest',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -135,5 +142,6 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_WHITELIST = [
-     'http://localhost:3000'
+    'http://localhost:3000',
+    'https://bmnn.pagekite.me'
 ]

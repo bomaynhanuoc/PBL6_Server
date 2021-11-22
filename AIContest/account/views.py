@@ -158,7 +158,7 @@ def checkToken(request):
 
 def checkUsername(name):
     try:
-        account = Accounts.objects.get(username=name)
+        Accounts.objects.get(username=name)
     except Accounts.DoesNotExist:
         return True
     return False

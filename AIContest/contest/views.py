@@ -1,6 +1,7 @@
 import secrets
 from cryptography.fernet import Fernet
 from django.shortcuts import render
+from rest_framework import exceptions
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -66,10 +67,7 @@ def getContests(request):
         i['time_regist'] = convertDateTimetoString(i['time_regist'])
         i['time_start'] = convertDateTimetoString(i['time_start'])
         i['time_end'] = convertDateTimetoString(i['time_end'])
-    # contest_serializer = ContestSerializer(data=contests, many=True)
-    if len(contests) != 0:
-        return JsonResponse(contests, safe=False)
-    return JsonResponse("no contest", safe=False)
+    return JsonResponse(contests, safe=False)
 
 
 @api_view(['POST'])
@@ -142,29 +140,61 @@ def addParticipant(request):
 
 @api_view(['PATCH'])
 def updateContest(request):
-    request_data = JSONParser().parse(request)
     try:
+        request_data = {}
+        for key in request:
+            print(key)
+        request_data = JSONParser().parse(request)
         contest = Contests.objects.get(id=request_data['id'])
+        check = False
+        if 'token' in request_data:
+            account = getTokenRole(request_data.pop('token'))
+            if account is not str:
+                if account['role'] == 'admin':
+                    check = True
+                elif account['role'] == 'creator' and account['username'] == contest.creator:
+                    check = True
+        if not check:
+            return Response("No authorization")
+        if 'time_regist' in request_data:
+            request.data['time_regist'] = convertStringtoDateTime(request.data['time_regist'])
+        if 'time_start' in request_data:
+            request.data['time_end'] = convertStringtoDateTime(request.data['time_start'])
+        if 'time_regist' in request_data:
+            request.data['time_end'] = convertStringtoDateTime(request.data['time_end'])
         contest_serializer = ContestSerializer(contest, data=request_data)
         if contest_serializer.is_valid():
             contest_serializer.save()
-            return JsonResponse("Updated Successfully", safe=False)
+            return Response("Updated Successfully")
+        else:
+            return JsonResponse(contest_serializer.errors, safe=False)
+    except exceptions.ParseError:
+        return Response("Invalid request data")
     except Contests.DoesNotExist:
-        return JsonResponse("Contest doesn't existed", safe=False)
-    return JsonResponse(contest_serializer.errors, safe=False)
-    # return JsonResponse("update", safe=False)
+        return Response("Contest doesn't existed")
 
 
 @api_view(['DELETE'])
 def deleteContest(request):
-    # contest_data = JSONParser().parse(request)
-    # try:
-    #     contest = Contests.objects.get(id=contest_data['id'])
-    #     contest.delete()
-    #     return JsonResponse("Delete Successfully", safe=False)
-    # except Contests.DoesNotExist:
-    #     return JsonResponse("Contest doesn't existed", safe=False)
-    return JsonResponse("delete", safe=False)
+    try:
+        request_data = JSONParser().parse(request)
+        contest = Contests.objects.get(id=request_data['id'])
+        check = False
+        if 'token' in request_data:
+            account = getTokenRole(request_data.pop('token'))
+            if account is not str:
+                if account['role'] == 'admin':
+                    check = True
+                elif account['role'] == 'creator' and account['username'] == contest.creator:
+                    check = True
+        if not check:
+            return Response("No authorization")
+        contest.delete()
+        return Response("Deleted Successfully")
+    except exceptions.ParseError:
+        return Response("Invalid request data")
+    except Contests.DoesNotExist:
+        return Response("Contest doesn't existed")
 
 
 def updateRanking(id, username, point):
