@@ -55,4 +55,4 @@
 </ul>
 
 <h1>Hướng dẫn cải tiến</h1>
-<h4>[Xem thêm](https://github.com/bomaynhanuoc/PBL6_Server)</h4>
+<a href="https://github.com/bomaynhanuoc/PBL6_Server" target="_blank">Xem thêm</a>
