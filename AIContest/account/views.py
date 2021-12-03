@@ -59,16 +59,21 @@ def createAccount(request):
 def updateAccount(request):
     try:
         account_data = JSONParser().parse(request)
-        if 'username' in account_data and 'password' in account_data:
+        if 'username' in account_data:
+            if 'token' in account_data:
+                account_data.pop('token')
             account = Accounts.objects.get(username=account_data['username'])
-            fernet = Fernet(account.key)
-            account_data['password'] = fernet.encrypt(account_data['password'].encode()).decode("utf-8")
+            if 'password' in account_data:
+                if len(account_data['password']) < 20:
+                    fernet = Fernet(account.key)
+                    account_data['password'] = fernet.encrypt(account_data['password'].encode()).decode("utf-8")
             account_serializer = AccountSerializer(account, data=account_data)
             if account_serializer.is_valid():
                 account_serializer.save()
                 return JsonResponse("Updated Successfully", safe=False)
+            return JsonResponse("Error occur when saving", safe=False)
         else:
-            return JsonResponse("Need username and password to proceed", safe=False)
+            return JsonResponse("Need username to proceed", safe=False)
     except Accounts.DoesNotExist:
         return JsonResponse("Account doesn't existed", safe=False)
     except exceptions.ParseError:
@@ -109,7 +114,7 @@ def loginAccount(request):
                 account_serializer = AccountSerializer(account, data=account_data)
                 if account_serializer.is_valid():
                     account_serializer.save()
-                    return JsonResponse({"username": account.username, "token": token}, safe=False)
+                    return JsonResponse({"username": account.username, "role": account.role, "token": token}, safe=False)
                 return JsonResponse(account_serializer.errors, safe=False)
             else:
                 return JsonResponse("Wrong password", safe=False)

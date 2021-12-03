@@ -1,4 +1,5 @@
 import secrets
+import django
 from cryptography.fernet import Fernet
 from django.shortcuts import render
 from rest_framework import exceptions
@@ -16,6 +17,7 @@ import json
 import base64
 import os
 import os.path
+import shutil
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONTEST_DIR = BASE_DIR / "contest" / "file"
@@ -77,6 +79,7 @@ def createContest(request):
         data_train = request.data['data_train']
         data_test = request.data['data_test']
         tester = request.data['tester']
+        # languages = '["' + '", "'.join(request.data['language']) + '"]'
         name = secrets.token_hex(16)
         save_path = CONTEST_DIR / name
         if not os.path.exists(save_path):
@@ -156,18 +159,54 @@ def updateContest(request):
                     check = True
         if not check:
             return Response("No authorization")
+        save_path = CONTEST_DIR / contest.link_contest
+        fs = FileSystemStorage(location=save_path)
         if 'time_regist' in request_data:
-            request.data['time_regist'] = convertStringtoDateTime(request.data['time_regist'])
+            request_data['time_regist'] = convertStringtoDateTime(request.data['time_regist'])
+
         if 'time_start' in request_data:
-            request.data['time_end'] = convertStringtoDateTime(request.data['time_start'])
-        if 'time_regist' in request_data:
-            request.data['time_end'] = convertStringtoDateTime(request.data['time_end'])
+            request_data['time_start'] = convertStringtoDateTime(request.data['time_start'])
+
+        if 'time_end' in request_data:
+            request_data['time_end'] = convertStringtoDateTime(request.data['time_end'])
+
+        if 'contest' in request_data:
+            contest_pdf = request_data.pop('contest')
+            if contest_pdf.__class__ is django.core.files.uploadedfile.InMemoryUploadedFile:
+                if os.path.exists(save_path / "contest.pdf"):
+                    os.remove(save_path / "contest.pdf")
+                fs.save('contest.pdf', contest_pdf)
+
+        if 'data_train' in request_data:
+            data_train = request_data.pop('data_train')
+            if data_train.__class__ is django.core.files.uploadedfile.InMemoryUploadedFile:
+                if os.path.exists(save_path / "data_train.txt"):
+                    os.remove(save_path / "data_train.txt")
+                fs.save('data_train.txt', data_train)
+
+        if 'data_test' in request_data:
+            data_test = request_data.pop('data_test')
+            if data_test.__class__ is django.core.files.uploadedfile.InMemoryUploadedFile:
+                if os.path.exists(save_path / "data_test.txt"):
+                    os.remove(save_path / "data_test.txt")
+                fs.save('data_test.txt', data_test)
+
+        if 'tester' in request_data:
+            tester = request_data.pop('tester')
+            if tester.__class__ is django.core.files.uploadedfile.InMemoryUploadedFile:
+                if os.path.exists(save_path / "tester.py"):
+                    os.remove(save_path / "tester.py")
+                fs.save('tester.py', tester)
+
+        if 'language' in request_data:
+            request_data.pop('language')
+
         contest_serializer = ContestSerializer(contest, data=request_data)
         if contest_serializer.is_valid():
             contest_serializer.save()
             return Response("Updated Successfully")
         else:
-            return JsonResponse(contest_serializer.errors, safe=False)
+            return Response("Error when updating")
     except exceptions.ParseError:
         return Response("Invalid request data")
     except Contests.DoesNotExist:
@@ -189,7 +228,10 @@ def deleteContest(request):
                     check = True
         if not check:
             return Response("No authorization")
+
         contest.delete()
+        if os.path.exists(CONTEST_DIR / contest.link_contest):
+            shutil.rmtree(CONTEST_DIR / contest.link_contest)
         return Response("Deleted Successfully")
     except exceptions.ParseError:
         return Response("Invalid request data")

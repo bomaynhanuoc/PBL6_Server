@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-e96v@esk-mghv5a^93u-vd)=&a9_vcb+0%12!f5@4e@&akrtol
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'be-bmnn.pagekite.me', 'bmnn.pagekite.me']
+ALLOWED_HOSTS = ['localhost', 'be-aibmnn.pagekite.me', 'aibmnn.pagekite.me']
 
 
 # Application definition
@@ -144,5 +144,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
-    'https://bmnn.pagekite.me'
+    'http://aibmnn.pagekite.me',
+    'https://aibmnn.pagekite.me'
 ]

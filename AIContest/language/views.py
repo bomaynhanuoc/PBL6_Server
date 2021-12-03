@@ -51,7 +51,6 @@ def updateLanguage(request):
             account = getTokenRole(data['token'])
             data.pop('token')
             if account.__class__ is not str and account['role'] == "admin":
-                print(data)
                 language = Languages.objects.get(name=data['name'])
                 language_serializer = LanguageSerializer(language, data=data)
                 if language_serializer.is_valid():
