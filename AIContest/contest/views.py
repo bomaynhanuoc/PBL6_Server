@@ -43,11 +43,18 @@ def getContest(request):
             "language": list_language,
             "time_out": contest.time_out
         }
+
         account = getTokenRole(data['token'])
         if account.__class__ is str:
             return Response("FORBIDDEN")
         else:
-            if account['username'] == contest.creator:
+            if account['role'] == "admin":
+                jsonres['link_contest'] = base64.b64encode(
+                    open(CONTEST_DIR / contest.link_contest / "contest.pdf", 'rb').read()).decode('utf-8')
+                jsonres['link_datatrain'] = open(CONTEST_DIR / contest.link_datatrain, 'r').read()
+                jsonres['link_datatest'] = open(CONTEST_DIR / contest.link_datatest, 'r').read()
+                jsonres['link_tester'] = open(CONTEST_DIR / contest.link_tester, 'r').read()
+            elif account['role'] == "creator":
                 jsonres['link_contest'] = base64.b64encode(open(CONTEST_DIR / contest.link_contest / "contest.pdf", 'rb').read()).decode('utf-8')
                 jsonres['link_datatrain'] = open(CONTEST_DIR / contest.link_datatrain, 'r').read()
                 jsonres['link_datatest'] = open(CONTEST_DIR / contest.link_datatest, 'r').read()
@@ -55,6 +62,7 @@ def getContest(request):
             elif account['username'] in list_participants:
                 jsonres['link_contest'] = base64.b64encode(open(CONTEST_DIR / contest.link_contest / "contest.pdf", 'rb').read()).decode('utf-8')
                 jsonres['link_datatrain'] = open(CONTEST_DIR / contest.link_datatrain, 'r').read()
+
         return Response(jsonres)
     except Contests.DoesNotExist:
         return Response("Contest does not exist")
@@ -80,6 +88,18 @@ def createContest(request):
         data_test = request.data['data_test']
         tester = request.data['tester']
         # languages = '["' + '", "'.join(request.data['language']) + '"]'
+
+        # check = False
+        # if 'token' in request.data:
+        #     account = getTokenRole(request.data.pop('token'))
+        #     if account is not str:
+        #         if account['role'] == 'admin':
+        #             check = True
+        #         elif account['role'] == 'creator':
+        #             check = True
+        # if not check:
+        #     return Response("No authorization")
+
         name = secrets.token_hex(16)
         save_path = CONTEST_DIR / name
         if not os.path.exists(save_path):
